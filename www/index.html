@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Novel Forge Pro</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100dvh; overflow: hidden; background: #111; color: #eee; font-family: system-ui, -apple-system, sans-serif; }
+    #shelfView { display: flex; flex-direction: column; height: 100dvh; padding: 12px; overflow-y: auto; }
+    .shelf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    .shelf-btn-row { display: flex; gap: 6px; }
+    .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding-bottom: 20px; }
+    .book-card { background: #1c1c1c; border: 1px solid #333; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 220px; }
+    .book-cover { width: 100%; height: 130px; background: #222; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 32px; border-bottom: 1px solid #2a2a2a; }
+    .book-info { padding: 8px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .book-info h4 { font-size: 13px; color: #4fa3d1; margin-bottom: 2px; word-break: break-word; }
+    .book-actions { display: flex; gap: 4px; margin-top: 6px; }
+    button { padding: 6px 10px; background: #252525; color: #fff; border: 1px solid #3d3d3d; border-radius: 4px; font-size: 12px; cursor: pointer; flex-shrink: 0; }
+    button.accent { background: #1e3a5f; border-color: #2b578c; }
+    button.danger { background: #5a1e1e; border-color: #7d2a2a; }
+    #editorView { display: none; flex-direction: column; height: 100dvh; width: 100%; }
+    .navbar { background: #181818; padding: 6px 8px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid #252525; flex-shrink: 0; align-items: center; }
+    .navbar::-webkit-scrollbar { display: none; }
+    .punct-bar { background: #202020; padding: 4px 6px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid #2b2b2b; flex-shrink: 0; }
+    .punct-bar button { padding: 4px 8px; background: #282828; font-size: 13px; min-width: 32px; border-color: #444; }
+    .tree-bar { background: #151515; padding: 4px 8px; display: flex; gap: 6px; align-items: center; font-size: 12px; border-bottom: 1px solid #222; flex-shrink: 0; }
+    .tree-bar select { background: #111; color: #eee; border: 1px solid #333; padding: 4px 6px; border-radius: 4px; font-size: 11px; max-width: 130px; }
+    .stage { display: flex; flex: 1; position: relative; overflow: hidden; width: 100%; }
+    textarea#editor { flex: 1; width: 100%; height: 100%; background: #131313; color: #f0f0f0; font-size: 16px; line-height: 1.6; padding: 14px; border: none; outline: none; resize: none; }
+    .drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 85%; max-width: 330px; background: #1c1c1c; border-right: 1px solid #333; transform: translateX(-100%); transition: transform 0.2s ease-in-out; padding: 12px; z-index: 50; display: flex; flex-direction: column; }
+    .drawer.active { transform: translateX(0); }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0; }
+    #readerModal { display: none; position: fixed; inset: 0; background: #161616; z-index: 100; flex-direction: column; }
+    #readerContent { flex: 1; overflow-y: auto; padding: 20px; font-size: 17px; line-height: 1.7; max-width: 650px; margin: 0 auto; color: #ddd; }
+  </style>
+</head>
+<body>
+
+<div id="shelfView">
+  <div class="shelf-header">
+    <h3>📚 Novel Forge</h3>
+    <div class="shelf-btn-row">
+      <button onclick="triggerImport()">📥 Import</button>
+      <button class="accent" onclick="createNewBook()">+ New Book</button>
+    </div>
+  </div>
+  <div class="book-grid" id="bookGrid"></div>
+</div>
+
+<div id="editorView">
+  <div class="navbar">
+    <button onclick="closeStudio()">⬅ Books</button>
+    <button onclick="toggleDrawer('slideTree')">📂 Arcs</button>
+    <button onclick="toggleDrawer('slideChars')">👤 Cast</button>
+    <button onclick="saveCurrentChapter()">💾 Save</button>
+    <button onclick="exportEPUB()">📥 EPUB</button>
+    <button onclick="openReader()">📖 Read</button>
+  </div>
+
+  <div class="punct-bar">
+    <button onclick="insertPunct('“', '”')">“ ”</button>
+    <button onclick="insertPunct('—')">—</button>
+    <button onclick="insertPunct('…')">…</button>
+    <button onclick="insertPunct('‘', '’')">‘ ’</button>
+    <button onclick="insertPunct('    ')">Tab</button>
+  </div>
+
+  <div class="tree-bar">
+    <span>Arc:</span>
+    <select id="volSelect" onchange="switchVolume(this.value)"></select>
+    <span>Ch:</span>
+    <select id="chSelect" onchange="switchChapter(this.value)"></select>
+    <button onclick="addNewChapter()">+ Ch</button>
+  </div>
+
+  <div class="stage">
+    <div id="slideTree" class="drawer">
+      <div class="drawer-header">
+        <h4>Arcs & Chapters</h4>
+        <button onclick="toggleDrawer('slideTree')">✕</button>
+      </div>
+      <button onclick="addNewVolume()" style="margin-bottom:10px;">+ New Arc</button>
+      <div id="treeDisplay" style="flex:1; overflow-y:auto; font-size:13px; line-height:1.6;"></div>
+    </div>
+
+    <div id="slideChars" class="drawer">
+      <div class="drawer-header">
+        <h4>Character Cast</h4>
+        <button onclick="toggleDrawer('slideChars')">✕</button>
+      </div>
+      <div style="display:flex; gap:6px; margin-bottom:8px;">
+        <select id="charSelect" onchange="switchCharacter(this.value)" style="flex:1; background:#121212; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;"></select>
+        <button onclick="addNewChar()">+ Add</button>
+      </div>
+      <textarea id="charContent" style="flex:1; background:#141414; color:#ddd; padding:8px; border:1px solid #333; border-radius:4px; font-size:13px;"></textarea>
+      <button onclick="saveCharacter()" style="margin-top:8px;">Save Cast</button>
+    </div>
+
+    <textarea id="editor" placeholder="Write scene..."></textarea>
+  </div>
+</div>
+
+<div id="readerModal">
+  <div class="navbar">
+    <button onclick="closeReader()">✕ Close</button>
+  </div>
+  <div id="readerContent"></div>
+</div>
+
+<script>
+  let library = {};
+  let currentBook = "", currentVol = "", currentCh = "", currentChar = "";
+  const editor = document.getElementById('editor');
+  const natSort = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+
+  async function init() {
+    localforage.config({ name: 'NovelForgeDB' });
+    const saved = await localforage.getItem('library_data');
+    if (saved) {
+      library = saved;
+    } else {
+      library = {
+        "Default Book": {
+          cover: null,
+          volumes: { "Volume_1": { "chapter_1.txt": "Chapter 1: The Beginning\n\nStart writing..." } },
+          characters: { "Protagonist": "Name: Protagonist" }
+        }
+      };
+      await saveLibrary();
+    }
+    renderShelf();
+  }
+
+  async function saveLibrary() { await localforage.setItem('library_data', library); }
+
+  function renderShelf() {
+    const grid = document.getElementById('bookGrid');
+    grid.innerHTML = '';
+    for (const b of Object.keys(library).sort(natSort)) {
+      const card = document.createElement('div');
+      card.className = 'book-card';
+      card.innerHTML = `
+        <div class="book-cover">📖</div>
+        <div class="book-info">
+          <h4>${b}</h4>
+          <div class="book-actions">
+            <button class="accent" style="flex:1;" onclick="openBook('${b}')">Open</button>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    }
+  }
+
+  function openBook(b) {
+    currentBook = b;
+    currentVol = Object.keys(library[b].volumes).sort(natSort)[0] || "Volume_1";
+    currentCh = Object.keys(library[b].volumes[currentVol] || {}).sort(natSort)[0] || "chapter_1.txt";
+    document.getElementById('shelfView').style.display = 'none';
+    document.getElementById('editorView').style.display = 'flex';
+    refreshHierarchy();
+  }
+
+  function closeStudio() {
+    document.getElementById('editorView').style.display = 'none';
+    document.getElementById('shelfView').style.display = 'flex';
+    renderShelf();
+  }
+
+  function refreshHierarchy() {
+    const book = library[currentBook];
+    const vSel = document.getElementById('volSelect');
+    vSel.innerHTML = '';
+    Object.keys(book.volumes).sort(natSort).forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      vSel.appendChild(opt);
+    });
+    vSel.value = currentVol;
+
+    const cSel = document.getElementById('chSelect');
+    cSel.innerHTML = '';
+    const chs = Object.keys(book.volumes[currentVol] || {}).sort(natSort);
+    chs.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c.replace('.txt', '');
+      cSel.appendChild(opt);
+    });
+    cSel.value = currentCh;
+    editor.value = book.volumes[currentVol]?.[currentCh] || "";
+  }
+
+  function switchVolume(v) { currentVol = v; refreshHierarchy(); }
+  function switchChapter(c) { currentCh = c; editor.value = library[currentBook].volumes[currentVol][currentCh] || ""; }
+
+  async function saveCurrentChapter() {
+    library[currentBook].volumes[currentVol][currentCh] = editor.value;
+    await saveLibrary();
+    alert("Saved!");
+  }
+
+  function toggleDrawer(id) {
+    const el = document.getElementById(id);
+    const was = el.classList.contains('active');
+    document.querySelectorAll('.drawer').forEach(d => d.classList.remove('active'));
+    if (!was) el.classList.add('active');
+  }
+
+  function insertPunct(left, right = '') {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const sel = editor.value.substring(start, end);
+    editor.setRangeText(left + sel + right, start, end, 'end');
+    editor.focus();
+  }
+
+  async function triggerImport() {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.epub,.txt';
+    inp.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const bname = file.name.replace(/\.[^/.]+$/, "");
+      const ext = file.name.split('.').pop().toLowerCase();
+
+      if (ext === 'epub') {
+        const zip = await JSZip.loadAsync(file);
+        let parsedChaps = {};
+        let chIdx = 1;
+        for (const filename of Object.keys(zip.files)) {
+          if (filename.match(/\.(html|xhtml|htm)$/i) && !filename.includes('toc')) {
+            const raw = await zip.files[filename].async("string");
+            const doc = new DOMParser().parseFromString(raw, "text/html");
+            const txt = doc.body.innerText.trim();
+            if (txt.length > 50) {
+              parsedChaps[`chapter_${chIdx}.txt`] = txt;
+              chIdx++;
+            }
+          }
+        }
+        library[bname] = {
+          cover: null,
+          volumes: { "Volume_1": parsedChaps },
+          characters: { "Protagonist": "Imported" }
+        };
+      } else {
+        const text = await file.text();
+        library[bname] = {
+          cover: null,
+          volumes: { "Volume_1": { "chapter_1.txt": text } },
+          characters: { "Protagonist": "Imported" }
+        };
+      }
+      await saveLibrary();
+      renderShelf();
+      openBook(bname);
+    };
+    inp.click();
+  }
+
+  async function exportEPUB() {
+    const zip = new JSZip();
+    zip.file("mimetype", "application/epub+zip");
+    zip.folder("META-INF").file("container.xml", `<?xml version="1.0"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>
+</container>`);
+
+    let manifest = [], spine = [], chIdx = 1;
+    const book = library[currentBook];
+    const oebps = zip.folder("OEBPS");
+
+    for (const v of Object.keys(book.volumes).sort(natSort)) {
+      for (const c of Object.keys(book.volumes[v]).sort(natSort)) {
+        const cid = `ch_${chIdx}`;
+        const paras = book.volumes[v][c].split('\n').filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
+        oebps.file(`${cid}.xhtml`, `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>${c}</title></head><body><h2>${c.replace('.txt','')}</h2>${paras}</body></html>`);
+        manifest.push(`<item id="${cid}" href="${cid}.xhtml" media-type="application/xhtml+xml"/>`);
+        spine.push(`<itemref idref="${cid}"/>`);
+        chIdx++;
+      }
+    }
+
+    oebps.file("content.opf", `<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookID" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${currentBook}</dc:title><dc:language>en</dc:language></metadata>
+  <manifest>${manifest.join('')}</manifest>
+  <spine>${spine.join('')}</spine>
+</package>`);
+
+    const blob = await zip.generateAsync({ type: "blob" });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${currentBook}.epub`;
+    a.click();
+  }
+
+  function openReader() {
+    const book = library[currentBook];
+    let html = "";
+    for (const v of Object.keys(book.volumes).sort(natSort)) {
+      for (const c of Object.keys(book.volumes[v]).sort(natSort)) {
+        html += `<h3>${v} - ${c.replace('.txt','')}</h3><p>${book.volumes[v][c].replace(/\n/g, '<br>')}</p><hr><br>`;
+      }
+    }
+    document.getElementById('readerContent').innerHTML = html;
+    document.getElementById('readerModal').style.display = 'flex';
+  }
+  function closeReader() { document.getElementById('readerModal').style.display = 'none'; }
+
+  init();
+</script>
+</body>
+</html>
