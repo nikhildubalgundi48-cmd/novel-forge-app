@@ -19,7 +19,6 @@
       --editor-bg: #000000;
       --editor-text: #f0f0f0;
     }
-
     :root[data-theme="charcoal"] {
       --bg: #18191a;
       --panel: #242526;
@@ -32,7 +31,6 @@
       --editor-bg: #1c1d1e;
       --editor-text: #e4e6eb;
     }
-
     :root[data-theme="sepia"] {
       --bg: #f4ecd8;
       --panel: #e8dcbf;
@@ -45,7 +43,6 @@
       --editor-bg: #fbf6ec;
       --editor-text: #342410;
     }
-
     :root[data-theme="light"] {
       --bg: #ffffff;
       --panel: #f1f3f5;
@@ -60,28 +57,42 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s ease, color 0.2s ease; }
-    
-    #shelfView { display: flex; flex-direction: column; height: 100dvh; padding: 12px; overflow-y: auto; }
+    html, body {
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    #shelfView { display: flex; flex-direction: column; height: 100%; padding: 12px; overflow-y: auto; }
     .shelf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
     .shelf-btn-row { display: flex; gap: 6px; align-items: center; }
-    .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding-bottom: 20px; }
-    .book-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 200px; }
-    .book-cover { width: 100%; height: 120px; background: var(--panel); display: flex; align-items: center; justify-content: center; font-size: 36px; border-bottom: 1px solid var(--border); }
+    .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding-bottom: 24px; }
+    .book-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 220px; }
+    .book-cover { width: 100%; height: 130px; background: var(--panel); display: flex; align-items: center; justify-content: center; font-size: 36px; border-bottom: 1px solid var(--border); background-size: cover; background-position: center; }
     .book-info { padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
     .book-info h4 { font-size: 14px; color: var(--text); margin-bottom: 6px; word-break: break-word; }
-    .book-actions { display: flex; gap: 4px; }
-    
+    .book-actions { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+
     button { padding: 6px 10px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; cursor: pointer; flex-shrink: 0; }
     button.accent { background: var(--accent); border-color: var(--accent-border); color: #fff; }
+    button.danger { background: #5a1e1e; border-color: #7d2a2a; color: #ffcccc; }
     select { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 5px 8px; border-radius: 4px; font-size: 12px; }
 
-    #editorView { display: none; flex-direction: column; height: 100dvh; width: 100%; }
+    #editorView { display: none; flex-direction: column; height: 100%; width: 100%; }
     .navbar { background: var(--panel); padding: 8px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center; }
     .navbar::-webkit-scrollbar { display: none; }
     .punct-bar { background: var(--card); padding: 4px 6px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .punct-bar button { padding: 4px 8px; font-size: 13px; min-width: 32px; }
-    .tree-bar { background: var(--bg); padding: 6px 8px; display: flex; gap: 6px; align-items: center; font-size: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .tree-bar { background: var(--bg); padding: 6px 8px; display: flex; gap: 6px; align-items: center; font-size: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
+    .tree-bar::-webkit-scrollbar { display: none; }
+    
     .stage { display: flex; flex: 1; position: relative; overflow: hidden; width: 100%; }
     textarea#editor { flex: 1; width: 100%; height: 100%; background: var(--editor-bg); color: var(--editor-text); font-size: 16px; line-height: 1.6; padding: 14px; border: none; outline: none; resize: none; font-family: inherit; }
     .drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 85%; max-width: 330px; background: var(--panel); border-right: 1px solid var(--border); transform: translateX(-100%); transition: transform 0.2s ease-in-out; padding: 12px; z-index: 50; display: flex; flex-direction: column; }
@@ -115,6 +126,7 @@
     <button onclick="closeStudio()">⬅ Books</button>
     <button onclick="toggleDrawer('slideTree')">📂 Arcs</button>
     <button onclick="toggleDrawer('slideChars')">👤 Cast</button>
+    <button onclick="toggleDrawer('slideRef')">📌 Reference</button>
     <select onchange="setTheme(this.value)" id="themeSelectEditor">
       <option value="oled">🌑 OLED</option>
       <option value="charcoal">🌚 Charcoal</option>
@@ -140,9 +152,11 @@
     <span>Ch:</span>
     <select id="chSelect" onchange="switchChapter(this.value)"></select>
     <button onclick="addNewChapter()">+ Ch</button>
+    <button class="danger" onclick="deleteCurrentChapter()">🗑️ Ch</button>
   </div>
 
   <div class="stage">
+    <!-- Arcs / Chapters Drawer -->
     <div id="slideTree" class="drawer">
       <div class="drawer-header">
         <h4>Arcs & Chapters</h4>
@@ -152,6 +166,7 @@
       <div id="treeDisplay" style="flex:1; overflow-y:auto; font-size:13px; line-height:1.6;"></div>
     </div>
 
+    <!-- Character Drawer -->
     <div id="slideChars" class="drawer">
       <div class="drawer-header">
         <h4>Character Cast</h4>
@@ -160,9 +175,21 @@
       <div style="display:flex; gap:6px; margin-bottom:8px;">
         <select id="charSelect" onchange="switchCharacter(this.value)" style="flex:1;"></select>
         <button onclick="addNewChar()">+ Add</button>
+        <button class="danger" onclick="deleteCharacter()">🗑️</button>
       </div>
       <textarea id="charContent" style="flex:1; background:var(--card); color:var(--text); padding:8px; border:1px solid var(--border); border-radius:4px; font-size:13px; outline:none; resize:none;"></textarea>
       <button onclick="saveCharacter()" style="margin-top:8px;">Save Cast</button>
+    </div>
+
+    <!-- In-Chapter Reference Drawer -->
+    <div id="slideRef" class="drawer">
+      <div class="drawer-header">
+        <h4>Chapter Quick-Ref</h4>
+        <button onclick="toggleDrawer('slideRef')">✕</button>
+      </div>
+      <p style="font-size:11px; color:var(--subtext); margin-bottom:8px;">Notes & reference details visible while writing.</p>
+      <textarea id="refContent" placeholder="Paste world rules, timelines, or scene goals here..." style="flex:1; background:var(--card); color:var(--text); padding:8px; border:1px solid var(--border); border-radius:4px; font-size:13px; outline:none; resize:none;"></textarea>
+      <button onclick="saveReference()" style="margin-top:8px;">Save Reference</button>
     </div>
 
     <textarea id="editor" placeholder="Write scene..."></textarea>
@@ -176,13 +203,17 @@
   <div id="readerContent"></div>
 </div>
 
+<input type="file" id="coverInput" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
+
 <script>
   let library = {};
   let currentBook = "", currentVol = "", currentCh = "", currentChar = "";
+  let targetCoverBook = "";
   const editor = document.getElementById('editor');
   const natSort = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 
   const embeddedDarkSky = {
+    cover: null,
     volumes: {
       "Volume_1": {
         "chapter 1.txt": "Chapter 1\n\n",
@@ -193,13 +224,12 @@
     },
     characters: {
       "protagonist": "Name: Protagonist\nDetails: "
-    }
+    },
+    references: ""
   };
 
   async function init() {
     localforage.config({ name: 'NovelForgeDB' });
-
-    // Load saved theme
     const savedTheme = await localforage.getItem('app_theme') || 'oled';
     applyTheme(savedTheme);
 
@@ -235,22 +265,56 @@
     grid.innerHTML = '';
     const books = Object.keys(library).sort(natSort);
     if (books.length === 0) {
-      grid.innerHTML = '<p style="color:var(--subtext); grid-column:1/-1;">No books yet. Tap "+ New Book" above.</p>';
+      grid.innerHTML = '<p style="color:var(--subtext); grid-column:1/-1;">No books found. Tap "+ New Book" above.</p>';
       return;
     }
     for (const b of books) {
+      const bookData = library[b];
       const card = document.createElement('div');
       card.className = 'book-card';
+      const coverHtml = bookData.cover 
+        ? `<div class="book-cover" style="background-image:url('${bookData.cover}')"></div>` 
+        : `<div class="book-cover">📖</div>`;
+
       card.innerHTML = `
-        <div class="book-cover">📖</div>
+        ${coverHtml}
         <div class="book-info">
           <h4>${b}</h4>
           <div class="book-actions">
-            <button class="accent" style="flex:1;" onclick="openBook('${b}')">Open</button>
+            <button class="accent" onclick="openBook('${b}')">Open</button>
+            <div style="display:flex; gap:4px; margin-top:4px;">
+              <button style="flex:1; font-size:11px;" onclick="selectCoverForBook('${b}')">🖼️ Cover</button>
+              <button class="danger" style="font-size:11px;" onclick="deleteBook('${b}')">🗑️</button>
+            </div>
           </div>
         </div>
       `;
       grid.appendChild(card);
+    }
+  }
+
+  function selectCoverForBook(b) {
+    targetCoverBook = b;
+    document.getElementById('coverInput').click();
+  }
+
+  function handleCoverUpload(e) {
+    const file = e.target.files[0];
+    if (!file || !targetCoverBook) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      library[targetCoverBook].cover = evt.target.result;
+      await saveLibrary();
+      renderShelf();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function deleteBook(b) {
+    if (confirm(`Are you sure you want to completely delete "${b}"?`)) {
+      delete library[b];
+      await saveLibrary();
+      renderShelf();
     }
   }
 
@@ -263,8 +327,10 @@
       return;
     }
     library[cleanTitle] = {
+      cover: null,
       volumes: { "Volume_1": { "chapter 1.txt": "Chapter 1\n\n" } },
-      characters: { "Protagonist": "" }
+      characters: { "Protagonist": "" },
+      references: ""
     };
     await saveLibrary();
     renderShelf();
@@ -311,6 +377,7 @@
     cSel.value = currentCh;
 
     editor.value = book.volumes[currentVol]?.[currentCh] || "";
+    document.getElementById('refContent').value = book.references || "";
 
     refreshTreeDisplay();
     refreshCharDrawer();
@@ -342,11 +409,32 @@
     refreshHierarchy();
   }
 
+  async function deleteCurrentChapter() {
+    const chs = Object.keys(library[currentBook].volumes[currentVol]);
+    if (chs.length <= 1) {
+      alert("Cannot delete the only chapter in this arc.");
+      return;
+    }
+    if (confirm(`Delete "${currentCh.replace('.txt', '')}"? This cannot be undone.`)) {
+      delete library[currentBook].volumes[currentVol][currentCh];
+      currentCh = Object.keys(library[currentBook].volumes[currentVol]).sort(natSort)[0];
+      await saveLibrary();
+      refreshHierarchy();
+    }
+  }
+
   async function saveCurrentChapter() {
     if (!currentBook || !currentVol || !currentCh) return;
     library[currentBook].volumes[currentVol][currentCh] = editor.value;
     await saveLibrary();
     alert("Saved successfully!");
+  }
+
+  async function saveReference() {
+    if (!currentBook) return;
+    library[currentBook].references = document.getElementById('refContent').value;
+    await saveLibrary();
+    alert("Reference notes saved!");
   }
 
   function refreshTreeDisplay() {
@@ -400,6 +488,15 @@
     switchCharacter(clean);
   }
 
+  async function deleteCharacter() {
+    if (!currentChar) return;
+    if (confirm(`Delete profile for "${currentChar}"?`)) {
+      delete library[currentBook].characters[currentChar];
+      await saveLibrary();
+      refreshCharDrawer();
+    }
+  }
+
   async function saveCharacter() {
     if (!currentBook || !currentChar) return;
     library[currentBook].characters[currentChar] = document.getElementById('charContent').value;
@@ -448,14 +545,18 @@
           }
         }
         library[bname] = {
+          cover: null,
           volumes: { "Volume_1": parsedChaps },
-          characters: { "Protagonist": "Imported profile" }
+          characters: { "Protagonist": "Imported profile" },
+          references: ""
         };
       } else {
         const text = await file.text();
         library[bname] = {
+          cover: null,
           volumes: { "Volume_1": { "chapter_1.txt": text } },
-          characters: { "Protagonist": "Imported profile" }
+          characters: { "Protagonist": "Imported profile" },
+          references: ""
         };
       }
       await saveLibrary();
@@ -494,7 +595,7 @@
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookID" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${currentBook}</dc:title><dc:language>en</dc:language></metadata>
   <manifest>${manifest.join('')}</manifest>
-   <spine>${spine.join('')}</spine>
+  <spine>${spine.join('')}</spine>
 </package>`);
 
     const blob = await zip.generateAsync({ type: "blob" });
