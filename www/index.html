@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="oled">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -7,34 +7,88 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
   <style>
+    :root[data-theme="oled"] {
+      --bg: #000000;
+      --panel: #0d0d0d;
+      --card: #141414;
+      --border: #242424;
+      --text: #e6e6e6;
+      --subtext: #888888;
+      --accent: #1e3a5f;
+      --accent-border: #2b578c;
+      --editor-bg: #000000;
+      --editor-text: #f0f0f0;
+    }
+
+    :root[data-theme="charcoal"] {
+      --bg: #18191a;
+      --panel: #242526;
+      --card: #2f3031;
+      --border: #3e4042;
+      --text: #e4e6eb;
+      --subtext: #b0b3b8;
+      --accent: #2d4f7c;
+      --accent-border: #3b669e;
+      --editor-bg: #1c1d1e;
+      --editor-text: #e4e6eb;
+    }
+
+    :root[data-theme="sepia"] {
+      --bg: #f4ecd8;
+      --panel: #e8dcbf;
+      --card: #eedfbe;
+      --border: #d4c39f;
+      --text: #433422;
+      --subtext: #70583b;
+      --accent: #8b6b43;
+      --accent-border: #6d5231;
+      --editor-bg: #fbf6ec;
+      --editor-text: #342410;
+    }
+
+    :root[data-theme="light"] {
+      --bg: #ffffff;
+      --panel: #f1f3f5;
+      --card: #f8f9fa;
+      --border: #dee2e6;
+      --text: #212529;
+      --subtext: #6c757d;
+      --accent: #0d6efd;
+      --accent-border: #0a58ca;
+      --editor-bg: #ffffff;
+      --editor-text: #1a1a1a;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100dvh; overflow: hidden; background: #111; color: #eee; font-family: system-ui, -apple-system, sans-serif; }
+    html, body { width: 100%; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s ease, color 0.2s ease; }
+    
     #shelfView { display: flex; flex-direction: column; height: 100dvh; padding: 12px; overflow-y: auto; }
-    .shelf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-    .shelf-btn-row { display: flex; gap: 6px; }
+    .shelf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .shelf-btn-row { display: flex; gap: 6px; align-items: center; }
     .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding-bottom: 20px; }
-    .book-card { background: #1c1c1c; border: 1px solid #333; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 220px; }
-    .book-cover { width: 100%; height: 130px; background: #222; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 32px; border-bottom: 1px solid #2a2a2a; }
-    .book-info { padding: 8px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    .book-info h4 { font-size: 13px; color: #4fa3d1; margin-bottom: 2px; word-break: break-word; }
-    .book-actions { display: flex; gap: 4px; margin-top: 6px; }
-    button { padding: 6px 10px; background: #252525; color: #fff; border: 1px solid #3d3d3d; border-radius: 4px; font-size: 12px; cursor: pointer; flex-shrink: 0; }
-    button.accent { background: #1e3a5f; border-color: #2b578c; }
-    button.danger { background: #5a1e1e; border-color: #7d2a2a; }
+    .book-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 200px; }
+    .book-cover { width: 100%; height: 120px; background: var(--panel); display: flex; align-items: center; justify-content: center; font-size: 36px; border-bottom: 1px solid var(--border); }
+    .book-info { padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .book-info h4 { font-size: 14px; color: var(--text); margin-bottom: 6px; word-break: break-word; }
+    .book-actions { display: flex; gap: 4px; }
+    
+    button { padding: 6px 10px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; cursor: pointer; flex-shrink: 0; }
+    button.accent { background: var(--accent); border-color: var(--accent-border); color: #fff; }
+    select { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 5px 8px; border-radius: 4px; font-size: 12px; }
+
     #editorView { display: none; flex-direction: column; height: 100dvh; width: 100%; }
-    .navbar { background: #181818; padding: 6px 8px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid #252525; flex-shrink: 0; align-items: center; }
+    .navbar { background: var(--panel); padding: 8px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center; }
     .navbar::-webkit-scrollbar { display: none; }
-    .punct-bar { background: #202020; padding: 4px 6px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid #2b2b2b; flex-shrink: 0; }
-    .punct-bar button { padding: 4px 8px; background: #282828; font-size: 13px; min-width: 32px; border-color: #444; }
-    .tree-bar { background: #151515; padding: 4px 8px; display: flex; gap: 6px; align-items: center; font-size: 12px; border-bottom: 1px solid #222; flex-shrink: 0; }
-    .tree-bar select { background: #111; color: #eee; border: 1px solid #333; padding: 4px 6px; border-radius: 4px; font-size: 11px; max-width: 130px; }
+    .punct-bar { background: var(--card); padding: 4px 6px; display: flex; gap: 6px; overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .punct-bar button { padding: 4px 8px; font-size: 13px; min-width: 32px; }
+    .tree-bar { background: var(--bg); padding: 6px 8px; display: flex; gap: 6px; align-items: center; font-size: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .stage { display: flex; flex: 1; position: relative; overflow: hidden; width: 100%; }
-    textarea#editor { flex: 1; width: 100%; height: 100%; background: #131313; color: #f0f0f0; font-size: 16px; line-height: 1.6; padding: 14px; border: none; outline: none; resize: none; }
-    .drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 85%; max-width: 330px; background: #1c1c1c; border-right: 1px solid #333; transform: translateX(-100%); transition: transform 0.2s ease-in-out; padding: 12px; z-index: 50; display: flex; flex-direction: column; }
+    textarea#editor { flex: 1; width: 100%; height: 100%; background: var(--editor-bg); color: var(--editor-text); font-size: 16px; line-height: 1.6; padding: 14px; border: none; outline: none; resize: none; font-family: inherit; }
+    .drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 85%; max-width: 330px; background: var(--panel); border-right: 1px solid var(--border); transform: translateX(-100%); transition: transform 0.2s ease-in-out; padding: 12px; z-index: 50; display: flex; flex-direction: column; }
     .drawer.active { transform: translateX(0); }
     .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0; }
-    #readerModal { display: none; position: fixed; inset: 0; background: #161616; z-index: 100; flex-direction: column; }
-    #readerContent { flex: 1; overflow-y: auto; padding: 20px; font-size: 17px; line-height: 1.7; max-width: 650px; margin: 0 auto; color: #ddd; }
+    #readerModal { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 100; flex-direction: column; }
+    #readerContent { flex: 1; overflow-y: auto; padding: 20px; font-size: 17px; line-height: 1.7; max-width: 650px; margin: 0 auto; color: var(--text); }
   </style>
 </head>
 <body>
@@ -43,6 +97,12 @@
   <div class="shelf-header">
     <h3>📚 Novel Forge</h3>
     <div class="shelf-btn-row">
+      <select onchange="setTheme(this.value)" id="themeSelectShelf">
+        <option value="oled">🌑 OLED</option>
+        <option value="charcoal">🌚 Charcoal</option>
+        <option value="sepia">📜 Sepia</option>
+        <option value="light">☀️ Light</option>
+      </select>
       <button onclick="triggerImport()">📥 Import</button>
       <button class="accent" onclick="createNewBook()">+ New Book</button>
     </div>
@@ -55,7 +115,13 @@
     <button onclick="closeStudio()">⬅ Books</button>
     <button onclick="toggleDrawer('slideTree')">📂 Arcs</button>
     <button onclick="toggleDrawer('slideChars')">👤 Cast</button>
-    <button onclick="saveCurrentChapter()">💾 Save</button>
+    <select onchange="setTheme(this.value)" id="themeSelectEditor">
+      <option value="oled">🌑 OLED</option>
+      <option value="charcoal">🌚 Charcoal</option>
+      <option value="sepia">📜 Sepia</option>
+      <option value="light">☀️ Light</option>
+    </select>
+    <button class="accent" onclick="saveCurrentChapter()">💾 Save</button>
     <button onclick="exportEPUB()">📥 EPUB</button>
     <button onclick="openReader()">📖 Read</button>
   </div>
@@ -92,10 +158,10 @@
         <button onclick="toggleDrawer('slideChars')">✕</button>
       </div>
       <div style="display:flex; gap:6px; margin-bottom:8px;">
-        <select id="charSelect" onchange="switchCharacter(this.value)" style="flex:1; background:#121212; color:#fff; border:1px solid #333; padding:5px; border-radius:4px;"></select>
+        <select id="charSelect" onchange="switchCharacter(this.value)" style="flex:1;"></select>
         <button onclick="addNewChar()">+ Add</button>
       </div>
-      <textarea id="charContent" style="flex:1; background:#141414; color:#ddd; padding:8px; border:1px solid #333; border-radius:4px; font-size:13px;"></textarea>
+      <textarea id="charContent" style="flex:1; background:var(--card); color:var(--text); padding:8px; border:1px solid var(--border); border-radius:4px; font-size:13px; outline:none; resize:none;"></textarea>
       <button onclick="saveCharacter()" style="margin-top:8px;">Save Cast</button>
     </div>
 
@@ -116,22 +182,50 @@
   const editor = document.getElementById('editor');
   const natSort = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 
+  const embeddedDarkSky = {
+    volumes: {
+      "Volume_1": {
+        "chapter 1.txt": "Chapter 1\n\n",
+        "chapter 2.txt": "Chapter 2\n\n",
+        "chapter 3.txt": "Chapter 3\n\n",
+        "chapter 4.txt": "Chapter 4\n\n"
+      }
+    },
+    characters: {
+      "protagonist": "Name: Protagonist\nDetails: "
+    }
+  };
+
   async function init() {
     localforage.config({ name: 'NovelForgeDB' });
+
+    // Load saved theme
+    const savedTheme = await localforage.getItem('app_theme') || 'oled';
+    applyTheme(savedTheme);
+
     const saved = await localforage.getItem('library_data');
-    if (saved) {
+    if (saved && Object.keys(saved).length > 0) {
       library = saved;
+      if (!library["dark sky"]) {
+        library["dark sky"] = embeddedDarkSky;
+        await saveLibrary();
+      }
     } else {
-      library = {
-        "Default Book": {
-          cover: null,
-          volumes: { "Volume_1": { "chapter_1.txt": "Chapter 1: The Beginning\n\nStart writing..." } },
-          characters: { "Protagonist": "Name: Protagonist" }
-        }
-      };
+      library = { "dark sky": embeddedDarkSky };
       await saveLibrary();
     }
     renderShelf();
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('themeSelectShelf').value = theme;
+    document.getElementById('themeSelectEditor').value = theme;
+  }
+
+  async function setTheme(theme) {
+    applyTheme(theme);
+    await localforage.setItem('app_theme', theme);
   }
 
   async function saveLibrary() { await localforage.setItem('library_data', library); }
@@ -139,7 +233,12 @@
   function renderShelf() {
     const grid = document.getElementById('bookGrid');
     grid.innerHTML = '';
-    for (const b of Object.keys(library).sort(natSort)) {
+    const books = Object.keys(library).sort(natSort);
+    if (books.length === 0) {
+      grid.innerHTML = '<p style="color:var(--subtext); grid-column:1/-1;">No books yet. Tap "+ New Book" above.</p>';
+      return;
+    }
+    for (const b of books) {
       const card = document.createElement('div');
       card.className = 'book-card';
       card.innerHTML = `
@@ -155,10 +254,27 @@
     }
   }
 
+  async function createNewBook() {
+    const title = prompt("Enter book title:");
+    if (!title || !title.trim()) return;
+    const cleanTitle = title.trim();
+    if (library[cleanTitle]) {
+      alert("A book with that name already exists.");
+      return;
+    }
+    library[cleanTitle] = {
+      volumes: { "Volume_1": { "chapter 1.txt": "Chapter 1\n\n" } },
+      characters: { "Protagonist": "" }
+    };
+    await saveLibrary();
+    renderShelf();
+    openBook(cleanTitle);
+  }
+
   function openBook(b) {
     currentBook = b;
     currentVol = Object.keys(library[b].volumes).sort(natSort)[0] || "Volume_1";
-    currentCh = Object.keys(library[b].volumes[currentVol] || {}).sort(natSort)[0] || "chapter_1.txt";
+    currentCh = Object.keys(library[b].volumes[currentVol] || {}).sort(natSort)[0] || "chapter 1.txt";
     document.getElementById('shelfView').style.display = 'none';
     document.getElementById('editorView').style.display = 'flex';
     refreshHierarchy();
@@ -174,11 +290,13 @@
     const book = library[currentBook];
     const vSel = document.getElementById('volSelect');
     vSel.innerHTML = '';
-    Object.keys(book.volumes).sort(natSort).forEach(v => {
+    const vols = Object.keys(book.volumes).sort(natSort);
+    vols.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v; opt.textContent = v;
       vSel.appendChild(opt);
     });
+    if (!book.volumes[currentVol]) currentVol = vols[0] || "Volume_1";
     vSel.value = currentVol;
 
     const cSel = document.getElementById('chSelect');
@@ -189,17 +307,104 @@
       opt.value = c; opt.textContent = c.replace('.txt', '');
       cSel.appendChild(opt);
     });
+    if (!chs.includes(currentCh)) currentCh = chs[0] || "";
     cSel.value = currentCh;
+
     editor.value = book.volumes[currentVol]?.[currentCh] || "";
+
+    refreshTreeDisplay();
+    refreshCharDrawer();
   }
 
   function switchVolume(v) { currentVol = v; refreshHierarchy(); }
   function switchChapter(c) { currentCh = c; editor.value = library[currentBook].volumes[currentVol][currentCh] || ""; }
 
+  async function addNewVolume() {
+    const volName = prompt("Enter Arc/Volume name (e.g. Volume_2):");
+    if (!volName || !volName.trim()) return;
+    const cleanVol = volName.trim().replace(/\s+/g, '_');
+    if (!library[currentBook].volumes[cleanVol]) {
+      library[currentBook].volumes[cleanVol] = { "chapter 1.txt": "Chapter 1\n\n" };
+      currentVol = cleanVol;
+      currentCh = "chapter 1.txt";
+      await saveLibrary();
+      refreshHierarchy();
+    }
+  }
+
+  async function addNewChapter() {
+    const chName = prompt("Enter Chapter name (e.g. Chapter 5):");
+    if (!chName || !chName.trim()) return;
+    const cleanCh = chName.trim().replace(/\.txt$/i, '') + ".txt";
+    library[currentBook].volumes[currentVol][cleanCh] = `${chName}\n\n`;
+    currentCh = cleanCh;
+    await saveLibrary();
+    refreshHierarchy();
+  }
+
   async function saveCurrentChapter() {
+    if (!currentBook || !currentVol || !currentCh) return;
     library[currentBook].volumes[currentVol][currentCh] = editor.value;
     await saveLibrary();
-    alert("Saved!");
+    alert("Saved successfully!");
+  }
+
+  function refreshTreeDisplay() {
+    const container = document.getElementById('treeDisplay');
+    container.innerHTML = '';
+    const book = library[currentBook];
+    for (const v of Object.keys(book.volumes).sort(natSort)) {
+      const vHeader = document.createElement('div');
+      vHeader.style.cssText = 'font-weight:bold; color:var(--accent); margin-top:8px;';
+      vHeader.textContent = `📁 ${v}`;
+      container.appendChild(vHeader);
+      for (const c of Object.keys(book.volumes[v]).sort(natSort)) {
+        const cRow = document.createElement('div');
+        cRow.style.cssText = 'padding-left:14px; cursor:pointer; margin:3px 0;';
+        cRow.textContent = `📄 ${c.replace('.txt', '')}`;
+        cRow.onclick = () => { currentVol = v; currentCh = c; refreshHierarchy(); toggleDrawer('slideTree'); };
+        container.appendChild(cRow);
+      }
+    }
+  }
+
+  function refreshCharDrawer() {
+    const book = library[currentBook];
+    const cSel = document.getElementById('charSelect');
+    cSel.innerHTML = '';
+    const chars = Object.keys(book.characters || {}).sort(natSort);
+    chars.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      cSel.appendChild(opt);
+    });
+    currentChar = chars[0] || "";
+    cSel.value = currentChar;
+    document.getElementById('charContent').value = book.characters?.[currentChar] || "";
+  }
+
+  function switchCharacter(name) {
+    currentChar = name;
+    document.getElementById('charContent').value = library[currentBook].characters?.[name] || "";
+  }
+
+  async function addNewChar() {
+    const name = prompt("Character name:");
+    if (!name || !name.trim()) return;
+    const clean = name.trim();
+    if (!library[currentBook].characters) library[currentBook].characters = {};
+    library[currentBook].characters[clean] = `Name: ${clean}\n`;
+    await saveLibrary();
+    refreshCharDrawer();
+    document.getElementById('charSelect').value = clean;
+    switchCharacter(clean);
+  }
+
+  async function saveCharacter() {
+    if (!currentBook || !currentChar) return;
+    library[currentBook].characters[currentChar] = document.getElementById('charContent').value;
+    await saveLibrary();
+    alert("Character saved!");
   }
 
   function toggleDrawer(id) {
@@ -243,16 +448,14 @@
           }
         }
         library[bname] = {
-          cover: null,
           volumes: { "Volume_1": parsedChaps },
-          characters: { "Protagonist": "Imported" }
+          characters: { "Protagonist": "Imported profile" }
         };
       } else {
         const text = await file.text();
         library[bname] = {
-          cover: null,
           volumes: { "Volume_1": { "chapter_1.txt": text } },
-          characters: { "Protagonist": "Imported" }
+          characters: { "Protagonist": "Imported profile" }
         };
       }
       await saveLibrary();
@@ -291,7 +494,7 @@
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookID" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${currentBook}</dc:title><dc:language>en</dc:language></metadata>
   <manifest>${manifest.join('')}</manifest>
-  <spine>${spine.join('')}</spine>
+   <spine>${spine.join('')}</spine>
 </package>`);
 
     const blob = await zip.generateAsync({ type: "blob" });
